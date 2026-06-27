@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JSA Rising — Submissions Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --canvas:#F5F3EE;
+    --card:#FFFFFF;
+    --ink:#1C2321;
+    --ink-soft:#646F69;
+    --forest:#1F4D3D;
+    --forest-dark:#143329;
+    --gold:#C99A3B;
+    --gold-soft:#EFE2BD;
+    --clay:#B5532E;
+    --clay-soft:#F2DDD2;
+    --line:#DDD8CB;
+    --radius:14px;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--canvas);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{ max-width:880px; margin:0 auto; padding:0 24px 80px; }
+
+  .rainbow-strip{
+    height:5px;
+    display:flex;
+  }
+  .rainbow-strip span{ flex:1; }
+  .rainbow-strip span:nth-child(1){background:#E0483E;}
+  .rainbow-strip span:nth-child(2){background:#EA7A33;}
+  .rainbow-strip span:nth-child(3){background:#E8C144;}
+  .rainbow-strip span:nth-child(4){background:#4F9D5C;}
+  .rainbow-strip span:nth-child(5){background:#3E8FA8;}
+  .rainbow-strip span:nth-child(6){background:#4D6FB0;}
+  .rainbow-strip span:nth-child(7){background:#8A5FB0;}
+
+  header{ padding:32px 0 8px; }
+  .brand{
+    display:flex; align-items:center; gap:10px;
+    font-size:12px; font-weight:700; letter-spacing:0.14em;
+    text-transform:uppercase; color:var(--forest); margin-bottom:14px;
+  }
+  .brand .dot{ width:7px;height:7px;border-radius:50%; background:var(--gold); display:inline-block; }
+  h1{
+    font-family:'Fraunces',serif; font-weight:500; font-style:italic;
+    font-size:clamp(26px,4.5vw,34px); margin:0 0 6px; color:var(--forest-dark);
+  }
+  .sub{ color:var(--ink-soft); font-size:14.5px; margin:0 0 28px; }
+
+  /* stat cards */
+  .stats{ display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:28px; }
+  @media (max-width:680px){ .stats{ grid-template-columns:repeat(2,1fr); } }
+  .stat{
+    background:var(--card); border:1px solid var(--line); border-radius:12px;
+    padding:16px 16px;
+  }
+  .stat .num{ font-family:'Fraunces',serif; font-size:26px; color:var(--forest-dark); line-height:1; margin-bottom:4px; }
+  .stat .label{ font-size:12px; color:var(--ink-soft); letter-spacing:0.02em; }
+
+  /* controls */
+  .controls{
+    display:flex; gap:10px; margin-bottom:18px; flex-wrap:wrap;
+    align-items:center;
+  }
+  .controls input[type="text"], .controls select{
+    font-family:'Inter',sans-serif; font-size:14px; color:var(--ink);
+    background:var(--card); border:1.5px solid var(--line); border-radius:9px;
+    padding:9px 12px;
+  }
+  .controls input[type="text"]{ flex:1; min-width:160px; }
+  .controls input:focus-visible, .controls select:focus-visible{
+    outline:none; border-color:var(--gold); box-shadow:0 0 0 3px var(--gold-soft);
+  }
+  .icon-btn{
+    background:var(--card); border:1.5px solid var(--line); border-radius:9px;
+    padding:9px 14px; font-size:13.5px; color:var(--ink); cursor:pointer;
+    display:flex; align-items:center; gap:6px;
+  }
+  .icon-btn:hover{ border-color:var(--gold); }
+
+  /* list */
+  .card{
+    background:var(--card); border:1px solid var(--line); border-radius:12px;
+    padding:18px 20px; margin-bottom:12px;
+  }
+  .card-top{
+    display:flex; justify-content:space-between; align-items:flex-start; gap:12px; flex-wrap:wrap;
+  }
+  .who b{ font-size:15.5px; color:var(--forest-dark); }
+  .who .meta{ font-size:13px; color:var(--ink-soft); margin-top:2px; }
+  .pill{
+    font-size:11.5px; font-weight:700; letter-spacing:0.03em; text-transform:uppercase;
+    padding:5px 10px; border-radius:99px; white-space:nowrap;
+  }
+  .pill.urgent{ background:var(--clay-soft); color:var(--clay); }
+  .pill.important{ background:var(--gold-soft); color:#8a6a23; }
+  .pill.exploring{ background:#E7ECE8; color:var(--ink-soft); }
+
+  .tags{ display:flex; flex-wrap:wrap; gap:6px; margin:12px 0 10px; }
+  .tag{
+    font-size:12px; background:var(--canvas); border:1px solid var(--line);
+    border-radius:99px; padding:4px 10px; color:var(--ink);
+  }
+  .details{ font-size:14px; color:var(--ink); }
+  .details.collapsed{
+    display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical;
+    overflow:hidden;
+  }
+  .more-link{
+    font-size:12.5px; color:var(--forest); font-weight:600; cursor:pointer; margin-top:6px;
+    display:inline-block;
+  }
+  .card-foot{ font-size:12px; color:var(--ink-soft); margin-top:10px; }
+
+  /* states */
+  .state{ text-align:center; padding:60px 20px; color:var(--ink-soft); }
+  .state h3{ font-family:'Fraunces',serif; font-style:italic; color:var(--forest-dark); font-size:20px; margin-bottom:8px; }
+  .spinner{
+    width:22px;height:22px; border:3px solid var(--line); border-top-color:var(--gold);
+    border-radius:50%; margin:0 auto 14px; animation:spin .8s linear infinite;
+  }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation:none !important; transition:none !important; }
+  }
+</style>
+</head>
+<body>
+
+<div class="rainbow-strip">
+  <span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+</div>
+
+<div class="wrap">
+  <header>
+    <div class="brand"><span class="dot"></span> JSA Rising · Admin</div>
+    <h1>Client submissions</h1>
+    <p class="sub">Everyone who's filled out the Business Check-In, newest first.</p>
+  </header>
+
+  <div class="stats" id="statsRow"></div>
+
+  <div class="controls">
+    <input type="text" id="searchInput" placeholder="Search by name or business…">
+    <select id="urgencyFilter">
+      <option value="">All urgency</option>
+      <option value="Need help now">Need help now</option>
+      <option value="Important, not urgent">Important, not urgent</option>
+      <option value="Just exploring">Just exploring</option>
+    </select>
+    <button class="icon-btn" id="refreshBtn">↻ Refresh</button>
+  </div>
+
+  <div id="listArea">
+    <div class="state" id="loadingState">
+      <div class="spinner"></div>
+      Loading submissions…
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  // Paste the same Google Apps Script Web App URL you used in the check-in form.
+  const API_URL = 'https://script.google.com/macros/s/AKfycbyLuN3TPWUiVwyVPKoM-C3SXcJRTBL7sexLl8Pn6aVGb1iHQKVowjMhZ6PZEw4fHSfw/exec';
+
+  let allSubmissions = [];
+
+  const listArea = document.getElementById('listArea');
+  const statsRow = document.getElementById('statsRow');
+  const searchInput = document.getElementById('searchInput');
+  const urgencyFilter = document.getElementById('urgencyFilter');
+  const refreshBtn = document.getElementById('refreshBtn');
+
+  function urgencyClass(u){
+    if (u === 'Need help now') return 'urgent';
+    if (u === 'Important, not urgent') return 'important';
+    return 'exploring';
+  }
+
+  function timeAgo(iso){
+    const diff = Date.now() - new Date(iso).getTime();
+    const mins = Math.floor(diff/60000);
+    if (mins < 1) return 'just now';
+    if (mins < 60) return mins + 'm ago';
+    const hrs = Math.floor(mins/60);
+    if (hrs < 24) return hrs + 'h ago';
+    const days = Math.floor(hrs/24);
+    if (days < 7) return days + 'd ago';
+    return new Date(iso).toLocaleDateString();
+  }
+
+  function escapeHtml(str){
+    return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  }
+
+  async function loadSubmissions(){
+    listArea.innerHTML = '<div class="state" id="loadingState"><div class="spinner"></div>Loading submissions…</div>';
+    statsRow.innerHTML = '';
+
+    let data;
+    try {
+      const res = await fetch(API_URL);
+      data = await res.json();
+    } catch (err) {
+      listArea.innerHTML = '<div class="state"><h3>Could not load submissions</h3>Check that the API_URL is set correctly, then try refreshing.</div>';
+      return;
+    }
+
+    if (!Array.isArray(data) || data.length === 0) {
+      allSubmissions = [];
+      renderStats([]);
+      listArea.innerHTML = '<div class="state"><h3>No submissions yet</h3>Share the Business Check-In link with your clients — responses will show up here.</div>';
+      return;
+    }
+
+    allSubmissions = data.sort((a,b) => new Date(b.submittedAt) - new Date(a.submittedAt));
+    renderStats(allSubmissions);
+    renderList();
+  }
+
+  function renderStats(subs){
+    const total = subs.length;
+    const urgent = subs.filter(s => s.urgency === 'Need help now').length;
+
+    const counts = {};
+    subs.forEach(s => (s.challenges || []).forEach(c => {
+      const base = c.split(':')[0].trim();
+      counts[base] = (counts[base] || 0) + 1;
+    }));
+    let topChallenge = '—';
+    let topCount = 0;
+    Object.entries(counts).forEach(([k,v]) => { if (v > topCount){ topCount = v; topChallenge = k; } });
+
+    const weekAgo = Date.now() - 7*24*60*60*1000;
+    const thisWeek = subs.filter(s => new Date(s.submittedAt).getTime() > weekAgo).length;
+
+    statsRow.innerHTML = `
+      <div class="stat"><div class="num">${total}</div><div class="label">Total submissions</div></div>
+      <div class="stat"><div class="num">${urgent}</div><div class="label">Need help now</div></div>
+      <div class="stat"><div class="num">${thisWeek}</div><div class="label">In the last 7 days</div></div>
+      <div class="stat"><div class="num" style="font-size:18px;">${escapeHtml(topChallenge)}</div><div class="label">Most common issue</div></div>
+    `;
+  }
+
+  function renderList(){
+    const q = searchInput.value.trim().toLowerCase();
+    const uf = urgencyFilter.value;
+
+    const filtered = allSubmissions.filter(s => {
+      const matchesQ = !q || (s.name||'').toLowerCase().includes(q) || (s.business||'').toLowerCase().includes(q);
+      const matchesU = !uf || s.urgency === uf;
+      return matchesQ && matchesU;
+    });
+
+    if (filtered.length === 0){
+      listArea.innerHTML = '<div class="state"><h3>No matches</h3>Try a different search or filter.</div>';
+      return;
+    }
+
+    listArea.innerHTML = filtered.map(s => `
+      <div class="card">
+        <div class="card-top">
+          <div class="who">
+            <b>${escapeHtml(s.business || 'Untitled business')}</b>
+            <div class="meta">${escapeHtml(s.name || '')} · ${escapeHtml(s.industry || '')}</div>
+          </div>
+          <span class="pill ${urgencyClass(s.urgency)}">${escapeHtml(s.urgency || 'Unknown')}</span>
+        </div>
+        <div class="tags">
+          ${(s.challenges||[]).map(c => '<span class="tag">'+escapeHtml(c)+'</span>').join('')}
+        </div>
+        <div class="details collapsed" data-full="${escapeHtml(s.details||'')}">${escapeHtml(s.details||'')}</div>
+        <span class="more-link">Read more</span>
+        <div class="card-foot">${escapeHtml(s.email||'')}${s.phone ? ' · '+escapeHtml(s.phone) : ''} · ${timeAgo(s.submittedAt)}</div>
+      </div>
+    `).join('');
+
+    document.querySelectorAll('.more-link').forEach(link => {
+      link.addEventListener('click', () => {
+        const details = link.previousElementSibling;
+        const collapsed = details.classList.toggle('collapsed');
+        link.textContent = collapsed ? 'Read more' : 'Show less';
+      });
+    });
+  }
+
+  searchInput.addEventListener('input', renderList);
+  urgencyFilter.addEventListener('change', renderList);
+  refreshBtn.addEventListener('click', loadSubmissions);
+
+  loadSubmissions();
+})();
+</script>
+</body>
+</html>
