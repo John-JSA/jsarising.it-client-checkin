@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>JSA Rising — Business Check-In</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --canvas:#F5F3EE;
+    --card:#FFFFFF;
+    --ink:#1C2321;
+    --ink-soft:#646F69;
+    --forest:#1F4D3D;
+    --forest-dark:#143329;
+    --gold:#C99A3B;
+    --gold-soft:#EFE2BD;
+    --clay:#B5532E;
+    --line:#DDD8CB;
+    --radius:14px;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--canvas);
+    color:var(--ink);
+    font-family:'Inter',sans-serif;
+    line-height:1.5;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  .wrap{
+    max-width:640px;
+    margin:0 auto;
+    padding:40px 24px 80px;
+  }
+
+  /* ---- Header ---- */
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-size:12px;
+    font-weight:700;
+    letter-spacing:0.14em;
+    text-transform:uppercase;
+    color:var(--forest);
+    margin-bottom:28px;
+  }
+  .brand .dot{
+    width:7px;height:7px;border-radius:50%;
+    background:var(--gold);
+    display:inline-block;
+  }
+
+  h1{
+    font-family:'Fraunces',serif;
+    font-weight:500;
+    font-style:italic;
+    font-size:clamp(28px,5vw,38px);
+    line-height:1.15;
+    margin:0 0 12px;
+    color:var(--forest-dark);
+  }
+  .sub{
+    color:var(--ink-soft);
+    font-size:15px;
+    margin:0 0 28px;
+    max-width:46ch;
+  }
+
+  /* ---- Progress: rising bars (signature element) ---- */
+  .progress{
+    display:flex;
+    align-items:flex-end;
+    gap:5px;
+    height:50px;
+    margin-bottom:36px;
+  }
+  .progress .bar{
+    flex:1;
+    background:var(--line);
+    border-radius:3px 3px 0 0;
+    transition:background .35s ease;
+  }
+  .progress .bar:nth-child(1){height:14px;}
+  .progress .bar:nth-child(2){height:21px;}
+  .progress .bar:nth-child(3){height:28px;}
+  .progress .bar:nth-child(4){height:35px;}
+  .progress .bar:nth-child(5){height:42px;}
+  .progress .bar:nth-child(6){height:50px;}
+  .progress .bar:nth-child(7){height:50px;}
+  .progress .bar:nth-child(1).filled{ background:#E0483E; }
+  .progress .bar:nth-child(2).filled{ background:#EA7A33; }
+  .progress .bar:nth-child(3).filled{ background:#E8C144; }
+  .progress .bar:nth-child(4).filled{ background:#4F9D5C; }
+  .progress .bar:nth-child(5).filled{ background:#3E8FA8; }
+  .progress .bar:nth-child(6).filled{ background:#4D6FB0; }
+  .progress .bar:nth-child(7).filled{ background:#8A5FB0; }
+  .progress-label{
+    font-size:12px;
+    color:var(--ink-soft);
+    margin:-32px 0 36px;
+    letter-spacing:0.02em;
+  }
+
+  /* ---- Card / sections ---- */
+  form{
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:8px;
+  }
+  section{
+    padding:28px 28px 32px;
+    border-bottom:1px solid var(--line);
+  }
+  section:last-of-type{ border-bottom:none; }
+
+  .step-label{
+    display:flex;
+    align-items:baseline;
+    gap:8px;
+    font-size:12px;
+    font-weight:700;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--forest);
+    margin-bottom:18px;
+  }
+  .step-label .num{ color:var(--gold); font-family:'Fraunces',serif; font-style:italic; font-size:15px; }
+
+  .field{ margin-bottom:18px; }
+  .field:last-child{ margin-bottom:0; }
+
+  label{
+    display:block;
+    font-size:13.5px;
+    font-weight:600;
+    margin-bottom:6px;
+    color:var(--ink);
+  }
+  label .opt{ color:var(--ink-soft); font-weight:400; }
+
+  input[type="text"],
+  input[type="email"],
+  input[type="tel"],
+  select,
+  textarea{
+    width:100%;
+    font-family:'Inter',sans-serif;
+    font-size:15px;
+    color:var(--ink);
+    background:var(--canvas);
+    border:1.5px solid var(--line);
+    border-radius:9px;
+    padding:11px 13px;
+    transition:border-color .2s ease, box-shadow .2s ease;
+  }
+  textarea{ resize:vertical; min-height:96px; }
+
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible{
+    outline:none;
+    border-color:var(--gold);
+    box-shadow:0 0 0 3px var(--gold-soft);
+  }
+
+  .row2{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  @media (max-width:520px){ .row2{ grid-template-columns:1fr; } }
+
+  /* checkbox grid */
+  .check-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:10px;
+  }
+  @media (max-width:520px){ .check-grid{ grid-template-columns:1fr; } }
+
+  .check-item{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    border:1.5px solid var(--line);
+    border-radius:9px;
+    padding:11px 13px;
+    cursor:pointer;
+    background:var(--canvas);
+    transition:border-color .2s ease, background .2s ease;
+    font-size:14px;
+  }
+  .check-item:hover{ border-color:var(--gold); }
+  .check-item input{ accent-color:var(--forest); width:16px; height:16px; flex-shrink:0; }
+  .check-item.checked{ border-color:var(--forest); background:#EEF3F0; }
+
+  .other-input{ margin-top:10px; display:none; }
+  .other-input.show{ display:block; }
+
+  /* urgency pills */
+  .pill-group{ display:flex; flex-direction:column; gap:9px; }
+  .pill{
+    border:1.5px solid var(--line);
+    border-radius:9px;
+    padding:12px 14px;
+    cursor:pointer;
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-size:14px;
+    background:var(--canvas);
+    transition:border-color .2s ease, background .2s ease;
+  }
+  .pill:hover{ border-color:var(--gold); }
+  .pill.checked{ border-color:var(--clay); background:#F7EDE6; }
+  .pill input{ accent-color:var(--clay); width:16px; height:16px; }
+
+  .hint{ font-size:12.5px; color:var(--ink-soft); margin-top:6px; }
+  .error-msg{
+    font-size:12.5px;
+    color:var(--clay);
+    margin-top:6px;
+    display:none;
+  }
+  .error-msg.show{ display:block; }
+  .field.has-error input,
+  .field.has-error select,
+  .field.has-error textarea{ border-color:var(--clay); }
+
+  /* submit */
+  .submit-row{ padding:24px 28px 28px; }
+  button.submit{
+    width:100%;
+    background:var(--forest);
+    color:#fff;
+    border:none;
+    border-radius:9px;
+    padding:15px 18px;
+    font-family:'Inter',sans-serif;
+    font-size:15.5px;
+    font-weight:600;
+    cursor:pointer;
+    transition:background .2s ease, transform .1s ease;
+  }
+  button.submit:hover{ background:var(--forest-dark); }
+  button.submit:active{ transform:scale(0.99); }
+  button.submit:disabled{ opacity:0.6; cursor:not-allowed; }
+  button.submit:focus-visible{ outline:3px solid var(--gold-soft); outline-offset:2px; }
+
+  .storage-note{
+    font-size:11.5px;
+    color:var(--ink-soft);
+    text-align:center;
+    margin-top:14px;
+  }
+
+  /* ---- confirmation state ---- */
+  .confirm{
+    display:none;
+    background:var(--card);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:48px 32px;
+    text-align:center;
+  }
+  .confirm.show{ display:block; }
+  .confirm .check{
+    width:52px;height:52px;
+    border-radius:50%;
+    background:var(--forest);
+    display:flex;align-items:center;justify-content:center;
+    margin:0 auto 20px;
+  }
+  .confirm h2{
+    font-family:'Fraunces',serif;
+    font-style:italic;
+    font-weight:500;
+    font-size:26px;
+    margin:0 0 10px;
+    color:var(--forest-dark);
+  }
+  .confirm p{ color:var(--ink-soft); font-size:14.5px; max-width:38ch; margin:0 auto 22px; }
+  .recap{
+    text-align:left;
+    background:var(--canvas);
+    border-radius:10px;
+    padding:16px 18px;
+    font-size:13.5px;
+    margin:0 auto 22px;
+    max-width:420px;
+  }
+  .recap div{ margin-bottom:6px; }
+  .recap b{ color:var(--forest-dark); }
+  .reset-btn{
+    background:none;
+    border:1.5px solid var(--line);
+    border-radius:9px;
+    padding:10px 16px;
+    font-size:13.5px;
+    color:var(--ink-soft);
+    cursor:pointer;
+  }
+  .reset-btn:hover{ border-color:var(--gold); color:var(--ink); }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ transition:none !important; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="brand"><span class="dot"></span> JSA Rising · Business Check-In</div>
+  <h1>What's slowing your business down right now?</h1>
+  <p class="sub">Two minutes, straight answers. The more specific you are, the faster we can actually help.</p>
+
+  <div class="progress" id="progressBars">
+    <div class="bar"></div><div class="bar"></div><div class="bar"></div>
+    <div class="bar"></div><div class="bar"></div><div class="bar"></div><div class="bar"></div>
+  </div>
+  <div class="progress-label" id="progressLabel">0 of 7 answered</div>
+
+  <form id="checkinForm" novalidate>
+
+    <section>
+      <div class="step-label"><span class="num">01</span> You &amp; your business</div>
+
+      <div class="row2">
+        <div class="field" id="f-name">
+          <label for="name">Your name</label>
+          <input type="text" id="name" name="name" autocomplete="name" required>
+          <div class="error-msg">Enter your name.</div>
+        </div>
+        <div class="field" id="f-business">
+          <label for="business">Business name</label>
+          <input type="text" id="business" name="business" autocomplete="organization" required>
+          <div class="error-msg">Enter your business name.</div>
+        </div>
+      </div>
+
+      <div class="row2">
+        <div class="field" id="f-email">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" autocomplete="email" required>
+          <div class="error-msg">Enter a valid email.</div>
+        </div>
+        <div class="field" id="f-phone">
+          <label for="phone">Phone <span class="opt">(optional)</span></label>
+          <input type="tel" id="phone" name="phone" autocomplete="tel">
+        </div>
+      </div>
+
+      <div class="field" id="f-industry">
+        <label for="industry">Industry</label>
+        <select id="industry" name="industry" required>
+          <option value="" disabled selected>Choose one</option>
+          <option>Retail</option>
+          <option>Food &amp; hospitality</option>
+          <option>Professional services</option>
+          <option>Trades &amp; construction</option>
+          <option>Health &amp; wellness</option>
+          <option>Creative &amp; media</option>
+          <option>Tech &amp; software</option>
+          <option>Other</option>
+        </select>
+        <div class="error-msg">Choose an industry.</div>
+      </div>
+    </section>
+
+    <section>
+      <div class="step-label"><span class="num">02</span> Where it's pinching</div>
+      <p class="hint" style="margin-top:-10px; margin-bottom:14px;">Pick everything that's currently a problem — not just one.</p>
+
+      <div class="field" id="f-challenges">
+        <div class="check-grid">
+          <label class="check-item"><input type="checkbox" value="Cash flow & finances"> Cash flow &amp; finances</label>
+          <label class="check-item"><input type="checkbox" value="Sales & new customers"> Sales &amp; new customers</label>
+          <label class="check-item"><input type="checkbox" value="Marketing & visibility"> Marketing &amp; visibility</label>
+          <label class="check-item"><input type="checkbox" value="Hiring & keeping people"> Hiring &amp; keeping people</label>
+          <label class="check-item"><input type="checkbox" value="Operations & systems"> Operations &amp; systems</label>
+          <label class="check-item"><input type="checkbox" value="Technology & tools"> Technology &amp; tools</label>
+          <label class="check-item"><input type="checkbox" value="Pricing & profitability"> Pricing &amp; profitability</label>
+          <label class="check-item"><input type="checkbox" value="Not enough time"> Not enough time</label>
+          <label class="check-item"><input type="checkbox" value="Competition"> Competition</label>
+          <label class="check-item"><input type="checkbox" value="Other"> Something else</label>
+        </div>
+        <div class="other-input" id="otherInputWrap">
+          <input type="text" id="otherChallenge" placeholder="What's the something else?">
+        </div>
+        <div class="error-msg">Pick at least one.</div>
+      </div>
+    </section>
+
+    <section>
+      <div class="step-label"><span class="num">03</span> The details</div>
+
+      <div class="field" id="f-details">
+        <label for="details">What's the biggest one right now?</label>
+        <textarea id="details" name="details" placeholder="Tell us what's actually going on — specifics help." required></textarea>
+        <div class="error-msg">Tell us a bit more — even a sentence helps.</div>
+      </div>
+
+      <div class="field" id="f-urgency" style="margin-top:20px;">
+        <label>How urgent is this?</label>
+        <div class="pill-group">
+          <label class="pill"><input type="radio" name="urgency" value="Need help now"> Need help now</label>
+          <label class="pill"><input type="radio" name="urgency" value="Important, not urgent"> Important, but not urgent</label>
+          <label class="pill"><input type="radio" name="urgency" value="Just exploring"> Just exploring options</label>
+        </div>
+        <div class="error-msg">Pick one.</div>
+      </div>
+    </section>
+
+    <div class="submit-row">
+      <button type="submit" class="submit" id="submitBtn">Send to JSA Rising</button>
+      <div class="storage-note">Your answers go straight to JSA Rising — they're not posted publicly.</div>
+    </div>
+  </form>
+
+  <div class="confirm" id="confirmPanel">
+    <div class="check">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4 12.5L9 17.5L20 6.5" stroke="white" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <h2 id="confirmName">Got it — thanks.</h2>
+    <p>JSA Rising has your answers and will be in touch.</p>
+    <div class="recap" id="recapBox"></div>
+    <button class="reset-btn" id="resetBtn">Submit another response</button>
+  </div>
+
+</div>
+
+<script>
+(function(){
+  // Paste your deployed Google Apps Script Web App URL here (see setup steps in chat).
+  const API_URL = 'https://script.google.com/macros/s/AKfycbyLuN3TPWUiVwyVPKoM-C3SXcJRTBL7sexLl8Pn6aVGb1iHQKVowjMhZ6PZEw4fHSfw/exec';
+
+  const form = document.getElementById('checkinForm');
+  const confirmPanel = document.getElementById('confirmPanel');
+  const otherCheckbox = document.querySelector('.check-item input[value="Other"]');
+  const otherWrap = document.getElementById('otherInputWrap');
+  const otherInput = document.getElementById('otherChallenge');
+  const bars = document.querySelectorAll('#progressBars .bar');
+  const progressLabel = document.getElementById('progressLabel');
+  const checkItems = document.querySelectorAll('.check-item input[type="checkbox"]');
+  const urgencyRadios = document.querySelectorAll('input[name="urgency"]');
+
+  // toggle checked styling + other-input reveal
+  checkItems.forEach(cb => {
+    cb.addEventListener('change', () => {
+      cb.closest('.check-item').classList.toggle('checked', cb.checked);
+      if (cb === otherCheckbox) {
+        otherWrap.classList.toggle('show', cb.checked);
+      }
+      updateProgress();
+    });
+  });
+  urgencyRadios.forEach(r => {
+    r.addEventListener('change', () => {
+      document.querySelectorAll('.pill').forEach(p => p.classList.remove('checked'));
+      r.closest('.pill').classList.add('checked');
+      updateProgress();
+    });
+  });
+
+  const trackedFields = ['name','business','email','industry','details'];
+  trackedFields.forEach(id => {
+    document.getElementById(id).addEventListener('input', updateProgress);
+    document.getElementById(id).addEventListener('change', updateProgress);
+  });
+
+  function anyChallengeChecked(){
+    return Array.from(checkItems).some(c => c.checked);
+  }
+  function urgencyChosen(){
+    return Array.from(urgencyRadios).some(r => r.checked);
+  }
+
+  function updateProgress(){
+    let filled = 0;
+    trackedFields.forEach(id => { if (document.getElementById(id).value.trim()) filled++; });
+    if (anyChallengeChecked()) filled++;
+    if (urgencyChosen()) filled++;
+    bars.forEach((bar, i) => bar.classList.toggle('filled', i < filled));
+    progressLabel.textContent = filled + ' of 7 answered';
+  }
+
+  function setError(fieldId, show){
+    const el = document.getElementById(fieldId);
+    el.classList.toggle('has-error', show);
+    const msg = el.querySelector('.error-msg');
+    if (msg) msg.classList.toggle('show', show);
+  }
+
+  form.addEventListener('submit', async function(e){
+    e.preventDefault();
+    let valid = true;
+
+    const name = document.getElementById('name').value.trim();
+    const business = document.getElementById('business').value.trim();
+    const email = document.getElementById('email').value.trim();
+    const phone = document.getElementById('phone').value.trim();
+    const industry = document.getElementById('industry').value;
+    const details = document.getElementById('details').value.trim();
+    const emailOk = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+
+    setError('f-name', !name); if(!name) valid = false;
+    setError('f-business', !business); if(!business) valid = false;
+    setError('f-email', !emailOk); if(!emailOk) valid = false;
+    setError('f-industry', !industry); if(!industry) valid = false;
+    setError('f-details', !details); if(!details) valid = false;
+
+    const challenges = Array.from(checkItems).filter(c => c.checked).map(c => c.value);
+    setError('f-challenges', challenges.length === 0); if(challenges.length === 0) valid = false;
+
+    const urgencyEl = document.querySelector('input[name="urgency"]:checked');
+    setError('f-urgency', !urgencyEl); if(!urgencyEl) valid = false;
+
+    if (!valid) return;
+
+    const otherText = otherCheckbox.checked ? otherInput.value.trim() : '';
+    const finalChallenges = challenges.map(c => c === 'Other' && otherText ? ('Other: ' + otherText) : c);
+
+    const submission = {
+      name, business, email, phone, industry,
+      challenges: finalChallenges,
+      details,
+      urgency: urgencyEl.value,
+      submittedAt: new Date().toISOString()
+    };
+
+    const btn = document.getElementById('submitBtn');
+    btn.disabled = true;
+    btn.textContent = 'Sending…';
+
+    try {
+      await fetch(API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify(submission)
+      });
+    } catch (err) {
+      console.error('Submission error:', err);
+      // Still show confirmation to the client — don't block them on a network hiccup.
+    }
+
+    document.getElementById('confirmName').textContent = 'Got it — thanks, ' + name.split(' ')[0] + '.';
+    document.getElementById('recapBox').innerHTML =
+      '<div><b>Business:</b> ' + escapeHtml(business) + '</div>' +
+      '<div><b>Top issues:</b> ' + escapeHtml(finalChallenges.join(', ')) + '</div>' +
+      '<div><b>Urgency:</b> ' + escapeHtml(urgencyEl.value) + '</div>';
+
+    form.style.display = 'none';
+    document.querySelector('.progress').style.display = 'none';
+    document.getElementById('progressLabel').style.display = 'none';
+    confirmPanel.classList.add('show');
+    btn.disabled = false;
+    btn.textContent = 'Send to JSA Rising';
+  });
+
+  document.getElementById('resetBtn').addEventListener('click', () => {
+    form.reset();
+    document.querySelectorAll('.check-item, .pill').forEach(el => el.classList.remove('checked'));
+    otherWrap.classList.remove('show');
+    document.querySelectorAll('.has-error').forEach(el => el.classList.remove('has-error'));
+    document.querySelectorAll('.error-msg.show').forEach(el => el.classList.remove('show'));
+    updateProgress();
+    form.style.display = 'block';
+    document.querySelector('.progress').style.display = 'flex';
+    document.getElementById('progressLabel').style.display = 'block';
+    confirmPanel.classList.remove('show');
+  });
+
+  function escapeHtml(str){
+    return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]));
+  }
+})();
+</script>
+</body>
+</html>
